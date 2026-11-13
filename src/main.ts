@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './core/app.module.js';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
    const app = await NestFactory.create(AppModule);
@@ -10,9 +11,15 @@ async function bootstrap() {
    const logger = new Logger();
 
    app.enableCors({
-      origin: config.getOrThrow<string>('CORS_ORIGIN').split(','),
+      origin: config.getOrThrow<string>('HTTP_CORS').split(','),
       credentials: true,
    });
+
+   const swaggerConfig = new DocumentBuilder().setTitle('Life Hub').setDescription('Life Hub API').setVersion('1.0').build();
+   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig)
+   SwaggerModule.setup('/docs', app, swaggerDocument, {
+      yamlDocumentUrl: '/openapi.yaml'
+   })
 
    const port = config.getOrThrow<number>('HTTP_PORT');
    const host = config.getOrThrow<string>('HTTP_HOST');
